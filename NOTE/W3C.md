@@ -13812,7 +13812,8 @@ Gitee|Gitlab
 命令行:
 	1. git checkout 目的分支	
 	2. git log|reflog
-	3. git reset --hard 版本号 
+	3. git reset --hard 版本号  
+	
 ```
 
 
