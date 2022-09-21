@@ -13895,7 +13895,6 @@ GitHub 自行创建
 	等价
 	git push origin --delete master
 	表示删除origin主机的master分支
-
 ```
 
 #### 拉取远程库到本地分支
