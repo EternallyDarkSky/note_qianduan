@@ -13766,7 +13766,7 @@ Gitee|Gitlab
 	git add 文件名
 提交到本地库
 	git commit -m "日志信息 文件名"
-	git rebase -i HEAD~4 		基合并
+	
 查看历史记录
 	git reflog			【基于提交commit】
 	git log
@@ -13869,6 +13869,17 @@ Gitee|Gitlab
 ```
 
 
+
+
+
+## 变基
+
+```
+合并commit记录
+	git rebase -i HEAD~4 
+	
+	
+```
 
 
 
