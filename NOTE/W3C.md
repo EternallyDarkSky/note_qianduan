@@ -2948,6 +2948,13 @@ opacity:0;					【消失, 位置保存】
 
 ## JS基础
 
+<<<<<<< HEAD
+​	基础语法内容是JS的基石，任何一个优秀的前端工程是必然是对其内容了如指掌，并灵活运用。作为基石的也是最重要的部分，这一块内容有三个特点，第一是其枯燥性，第二是其繁琐性，第三是其复杂抽象性。这三个特点导致JS的的学习是存在一定的难度的。但同学们不要气馁，在这里我只想强调JS基础作为前端基石的重要性，实际上呢它是一门简单易学的语言，简单易学是指在将它在语法上以及对于0基础同学的很容易就学会，而所有语言开发的最终难度都是一样的那就是在语言算法上的难度也可以理解为对代码的开发思想方法，思想方法上所有的语言难度是一致的，没有谁简单谁复杂的问题。
+
+
+
+=======
+>>>>>>> ab91daf (DarkSky)
 重难点：
 
 ```
@@ -2964,6 +2971,13 @@ opacity:0;					【消失, 位置保存】
 
 
 
+<<<<<<< HEAD
+
+
+
+
+=======
+>>>>>>> ab91daf (DarkSky)
 ### 第一章：数据类型
 
 #### 类型种类
@@ -3198,6 +3212,12 @@ parseInt: ƒ parseInt()											   	将字符串转换成整型数字
 
 ```
 在谓词中会存在两个对立的状态，真与否，即true和false
+<<<<<<< HEAD
+两个值：
+	true
+	false
+=======
+>>>>>>> ab91daf (DarkSky)
 ```
 
 初始情况下：什么情况下会是False
@@ -3260,6 +3280,19 @@ if(!0){
     null == "0"  			//false
     null == false 			//false
     null == ""	 			//false	
+<<<<<<< HEAD
+```
+
+|  **>**  |                                                            |
+| :-----: | ---------------------------------------------------------- |
+| **>=**  |                                                            |
+|  **<**  |                                                            |
+| **<=**  |                                                            |
+| **!=**  |                                                            |
+| **==**  | 【原因：==等会进行自动类型转换，===不会进行自动 类型转换】 |
+| **===** | **类型也需要相同**                                         |
+| **!==** | **类型也需要相同**                                         |
+=======
     if(!(NaN == 0)){
         console.log("NaN 不转 0")
     }
@@ -3281,6 +3314,7 @@ if(!0){
 |     **==**      | 【原因：==等会进行自动类型转换，===不会进行自动 类型转换】 |
 |     **===**     | **类型也需要相同**                                         |
 |     **!==**     | **类型也需要相同**                                         |
+>>>>>>> ab91daf (DarkSky)
 
 ```js
 let a = 1
@@ -3292,6 +3326,11 @@ a ===b				false
 
 ###### 2**逻辑运算符**
 
+<<<<<<< HEAD
+这是一个重点。
+
+=======
+>>>>>>> ab91daf (DarkSky)
 | **&&**   | 逻辑与【短路运算符】                         |
 | -------- | -------------------------------------------- |
 | **\|\|** | **逻辑或【短路运算符】**                     |
@@ -3564,6 +3603,9 @@ String -> number
 
 
 
+
+
+
 #### Object类型
 
 ​	在一切皆对象的洪流中，js也义不容辞的接受了这种思想。所以Object是一个很难详细介绍的一个数据类型。在js中可以说处处都是Object类型。所以在本节内容中我们以介绍为主，并为了符合介绍JS基础语法基础的思想，我们将选举几个Object典型的例子来讲解，让同学们对面对对象的思想就行一个入门的理解。
@@ -3624,6 +3666,8 @@ typeof str
 作用:
 	使用它我们可以知道一个数据的类型是什么。
 ```
+
+
 
 #### 运算符优先级
 
@@ -3706,6 +3750,7 @@ biga.toString().length
 ```
 
 BIgIng 类型只支持BigInt类型间的计算
+
 
 
 
@@ -6500,9 +6545,9 @@ console.log("Promise 之后")
   /*
           Promise 之后
           我最后执行，说明then是异步函数 1
-          我最后执行，说明then是异步函数 2
-  */
-  ```
+        我最后执行，说明then是异步函数 2
+
+
 
   
 
@@ -7909,10 +7954,10 @@ var str = 'aaa<div style="font-color:red;">123456</div>bbb'
 
 
 
+
 ### 对象模型
 
 #### DOM
-
 ```
 节点分类：			节点名		节点类型		节点值
 	文档节点：		#document   9			null
@@ -7946,7 +7991,6 @@ onload事件：在页面或图像加载完成后立即发生
 
 
 ##### 节点元素
-
 Dom 获取元素节点
 
 - [x] 获取元素节点标签
@@ -7989,7 +8033,6 @@ outerText:  【设置】【获取】当前[元素节点]自身及其所包含的
 
 
 ###### 获取节点的节点
-
 ```
 node.getElementsByTagName()	 		:通过标签获取子节点    		HTMLCollection
 node.childNodes												  NodeList(含空格文本Text)						 
@@ -8002,13 +8045,12 @@ node.lastChild
 
 
 ###### 获取节点的父节点
-
 ```
 node.parentNode
 ```
 
-###### 获取节点的兄弟节点
 
+###### 获取节点的兄弟节点
 ```
 node.prevoiusSibling		(含空格文本Text)	
 node.nextSibling			(含空格文本Text)	
@@ -8018,12 +8060,7 @@ node.nextElementSibling     (不含空格文本Text)	中用
 
 
 
-
-
-
-
 ###### 节点操作
-
 ```
 创建
 document.createElement("div")			:创建元素节点
@@ -8052,8 +8089,8 @@ someNode.setAttribute("attrName","attrValue")
 
 
 
-###### 节点样式操作
 
+###### 节点样式操作
 ```
 元素.style.样式名 = 值      	// 读取和设置的都是内联样式
 
@@ -8101,8 +8138,8 @@ function hasClass(elem,classAttr) {
 
 
 
-###### 元素尺寸
 
+###### 元素尺寸
 ```
 elem.clienWidth
 elem.clientHeigth 			// 元素的可见高，只含数字 ，含padding
@@ -8168,7 +8205,6 @@ s.offsetWidth
 
 
 ##### 事件对象
-
 ```js
 事件对象做参数：
 	当事件的响应函数被触发时，【浏览器】每次都会将一个事件对象作为实参传递进入响应函数。IE8- 不传
@@ -8200,7 +8236,9 @@ event.target 		:当前触发事件的元素
 
 
 
+
 ###### 事件冒泡
+
 
 ```
 相同事件触发方向：
@@ -8215,8 +8253,8 @@ event.cancleBubble = true // 取消冒泡
 	指将事件统一绑定给元素的共同祖先，当后代元素上的事件触发时，会一致冒泡到祖先元素。
 ```
 
-###### 事件绑定
 
+###### 事件绑定
 ```
 元素.事件 = 函数    // 无法绑定多个事件
 
@@ -8259,8 +8297,8 @@ bind(document.getElementsByTagName("div")[0],"click",function (event) {
 
 
 
-###### 事件传播
 
+###### 事件传播
 ```
 事件传播过程：
 	1.捕获阶段
@@ -8283,7 +8321,6 @@ releaseCapture()    //关闭强行捕获 IE8
 
 
 ###### 滚轮事件
-
 ```
 onmousewheel			火狐不支持
 DOMMouseScroll			火狐提供的滚轮事件，配合addEventListener()
@@ -8354,7 +8391,6 @@ DOMMouseScroll			火狐提供的滚轮事件，配合addEventListener()
 
 
 ###### 键盘事件
-
 ```
 keydown   
 keyup
@@ -8416,8 +8452,8 @@ keypress
 
 
 
-#### BOM
 
+#### BOM
 ```
 window  	: 代表整个浏览器的窗口,也是网页的全局对象 
 Navigator	：代表当前浏览器信息，用来识别不同的浏览器
@@ -8432,7 +8468,6 @@ Screen		: 代表用户屏幕信息
 ##### Location
 
 ###### 属性
-
 ```
 protocal		
 	:协议，一般为http[s]
@@ -8452,8 +8487,8 @@ href
 	:完整路径，protocal:host：pathname：search/hash
 ```
 
-###### 函数
 
+###### 函数
 ```
 assign(href)  	:页面重定向
 replace(href)	:替换当前页面，不进入历史History
@@ -8466,10 +8501,10 @@ reload(boolean)	:重新加载==F5,如果参数为true则==Ctrl+F5强制刷新（
 
 ------
 
+
 ##### History
 
 ###### 方法
-
 ```
 history.pushState({},'','/a')  				重复的压(栈)入历史路由
 history.back()								重复的出栈历史路由
@@ -8478,8 +8513,8 @@ history.replaceState({},","home")  			替换当前栈顶路由值
 history.go([index])							跳到指定位置
 ```
 
-###### 实操
 
+###### 实操
 ```js
 init:
 	[URL:https://www.baidu.com/]
@@ -8533,17 +8568,10 @@ opea:
 
 
 ##### 浏览器检查
-
 ```js
 IE 识别
 	if(”ActiveXObject" in window){code}
 ```
-
-
-
-
-
-
 
 
 
@@ -8552,6 +8580,7 @@ IE 识别
 ```
 localStorage
 sessionStorage
+cookie
 存储大小：
 	5MB左右 
 ```
@@ -8559,6 +8588,7 @@ sessionStorage
 #### localStorage
 
 ```js
+
 存：
     let info = {name:"DZQ",age:"18"}
     window.localStorage.setItem("msg",JSON.stringify(info))
@@ -8609,18 +8639,16 @@ iid = setInterval()			【周期】 clearInterval(iid)
 
 
 
-#### 防抖、节流
+#### 防抖节流
 
-```
+```js
 防抖：
 	在前端有一些事件，一旦被促发，就有一个短时高频率触发的特性。
     此时我们又有监视该类事件的需求，但是我只是希望监视它最后一次的事件。这时候就可以用防抖
     防抖指的是当事件停止触发一段时间后，如果没有在被触发才会最终执行对该事件的处理函数。
 节流：
 	当某个操作是连续性执行的时候，我们通过某种方式，降低该操作的执行频率，这就是节流。
-```
-
-```js
+	
 function debounce(handler, delayTime) {
     let timer = null;
     return (...args) => {
@@ -8657,9 +8685,6 @@ function throttle(handler,dalaytime) {
 
 let thort = throttle(function(){log("hellow")},2000)
 ```
-
-
-
 
 
 ## JS特效
@@ -10520,6 +10545,47 @@ import res from "path" ; // 或者
 import {default as res} from "./temp.js" ;
 console.log(res.PI);
 ```
+
+
+
+
+
+
+### webStorage
+
+```
+localStorage
+sessionStorage
+非Vue中的内存，应该属于JS的内容
+存储大小：
+	5MB左右 
+```
+
+#### localStorage
+
+```js
+存：
+    let info = {name:"DZQ",age:"18"}
+    window.localStorage.setItem("msg",JSON.stringify(info))
+取：
+	let strobj = window.localStorage.getItem("msg")
+删：
+	window.localStorage.removeItem("msg")
+清除：
+	window.localStorage.clear()
+```
+
+#### sessionStorage
+
+```
+方法同上：
+	window.sessionStorage
+	
+特点：
+	浏览器关闭时，就会被清空
+```
+
+
 
 
 
@@ -13282,6 +13348,7 @@ readyState:
 	每当实例对象发送状态变化，它的readyState属性就会改变，
 	同时每一次改变都会触发readystatechangee事件
 	onreadystatechange 2,3,4,都会调用它
+
 ```
 
 ### status
@@ -13685,8 +13752,6 @@ var file = new File([bolb], "tupian.img", {
 
 
 
-
-
 # 10 GIT 
 
 ```
@@ -13812,8 +13877,7 @@ Gitee|Gitlab
 命令行:
 	1. git checkout 目的分支	
 	2. git log|reflog
-	3. git reset --hard 版本号  
-	
+	3. git reset --hard 版本号 
 ```
 
 
@@ -13896,6 +13960,7 @@ GitHub 自行创建
 	等价
 	git push origin --delete master
 	表示删除origin主机的master分支
+
 ```
 
 #### 拉取远程库到本地分支
