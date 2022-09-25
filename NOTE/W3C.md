@@ -6229,7 +6229,7 @@ set caller: ƒ ()
 
 
 
-### 第九章: 面对对象
+### 第九章:   面对对象
 
 概念：括号的左边是函数，点的左边是对象。
 
@@ -6441,321 +6441,25 @@ console.log('3s 后打印哎呦喂')
 
 
 
-### 第十一章：Promise
-
-介绍Promise 之前，我们需要了解一个知识点：回调函数callBack同异步问题，相关基础知识见第二章。
-
-#### 1 Promise开发KeyProblems
-
-##### 1.1 Promise中的同步和异步
-
-【基础知识】
-
-Promise的执行器exectour是同步回调函数
-
-```js
-new Promise(()=>{
-    console.log("in Promise!")
-})
-console.log("Promise 之后")
-```
-
-.then 的回调函数是异步函数，且必须是异步的，因为这涉及到多then调用
-
-```js
-let p = new Promise((resolve, reject) => {
-    console.log("in Promise!")
-    resolve()
-})
-p.then(() => {
-    console.log("我最后执行，说明then是异步函数1")
-})
-p.then(() => {
-    console.log("我最后执行，说明then是异步函数2")
-})
-console.log("Promise 之后")
-
-/*
-     in Promise!
-     Promise 之后
-     我最后执行，说明then是异步函数1
-     我最后执行，说明then是异步函数2
- */
-```
-
-##### 1.2 多then与链式的区别
-
-【基础知识】
-
-- [x] 多then
-
-  ```js
-  let p = new Promise((resolve, reject) => {
-      resolve(1)
-  })
-  p.then((data) => {
-      console.log("我最后执行，说明then是异步函数1",data)
-  })
-  p.then((data) => {
-      console.log("我最后执行，说明then是异步函数2",data)
-  })
-  console.log("Promise 之后")
-  
-  /*
-          Promise 之后
-          我最后执行，说明then是异步函数 1
-        我最后执行，说明then是异步函数 2
-
-
-
-  
-
-- [x] 链式
-
-  ```js
-  let p = new Promise((resolve, reject) => {
-      console.log("in Promise!")
-      resolve(1)
-  })
-  p.then((data) => {
-      console.log("我最后执行，说明then是异步函数1",data)
-  })
-  .then((data) => {
-      console.log("我最后执行，说明then是异步函数2",data)
-  })
-  console.log("Promise 之后")
-  
-  /*
-          Promise 之后
-          我最后执行，说明then是异步函数 1
-          我最后执行，说明then是异步函数 undefined
-   */
-  ```
 
 
 
 
 
-##### 1.3 then中回调函数分析
 
-​	then中传入两个回调函数,分别是onResolved,onRejected两个回调函数。这两个回调函数只能执行一个，执行哪一个取决于当前Promise对象的状态，如果该状态为resolved 则执行onResolved函数，如果为rejected 则执行onRejected函数。无论执行哪一个回调函数，它们都必须返回一个**新的带状态的Promise实例对象**。所以我们在返回值是必须进行包装成Promise
+## JS高级
 
-```js
-let p = new Promise((resolve, reject) => {
-    resolve(1)
-})
-p.then((data) => {
-    console.log("我最后执行，说明then是异步函数1",data)
-    throw "5" 
-    // or
-    //return 5
-})
-.then((data) => {},(err)=>{
-    console.log(err)
-})
-console.log("Promise 之后")
-
-/* throw 
-     Promise 之后
-     rejected 5  
-*/
- /* return 5
-     Promise 之后
-     resolved 5
-*/
-
-```
-
-我们可以在第一个then中
-
-​					返回一个数，它会被包装成带resolve状态的Promise对象而返回，
-
-​	    或者抛出一个异常，它会被包装成带rejected状态的Promise对象而返回。
-
-```js
-let p = new Promise((resolve, reject) => {
-    resolve(1)
-})
-p.then((data) => {
-    return new Promise((resolve,reject)=>{
-        setTimeout(()=>{
-            reject(5)
-        },1000)
-    })
-})
-.then((data) => {
-    console.log("resolved",data)
-},(err)=>{
-    console.log("rejected",err)
-})
-console.log("Promise 之后")
-
-/*
-      Promise 之后
-	  rejected 5
-*/
-```
-
-或者干脆自己定义一个Promise对象，对其进行返回。
-
-
-
-
-
-##### 1.4 then中的异常穿透与中断
-
-- [x] 穿透问题
-
-```js
-let p = new Promise((resolve, reject) => {
-    reject('err 穿透')
-})
-
-p.then((data) => {},(err)=>{throw err})
- .then((data) => { }, (err) => {
-    console.log(err)
-})
--------------------------------------------------------------------
-// err 穿透
-p.then((data) => {})
- .then((data) => { }, (err) => {
-    console.log(err)
-})
-```
-
-在Promise  使用reject(data)，会触发第一个then中的onRejected函数，而我们并未书写该函数，其实本质就等于书写了
-
-*<u>(err)=>{throw err}</u>* 这个函数，于是就会把触发第二个then中的onReject函数并把结果传递给他，这就叫**异常穿透**。
-
-
-
-- [x] 中断问题
-
-```js
-let p = new Promise((resolve, reject) => {
-    reject('err 穿透')
-})
-p.then((data) => {
-})
-
-.then((data) => { }, (err) => {
-    console.log(err)
-    return new Promise(()=>{})
-})
-
-.then((data)=>{
-    console.log("3thendata",data)
-},(err)=>{
-    console.log("3thenerr ",err)
-})
-```
-
-在第二个then中我们已经对错误进行处理了，且不想在继续执行第三个then，这就是我们的中断Promise链的需求。通过在第二个then中返回一个pending状态的promise实例可以是实现中断Promise的需求。
-
-##### 1.5 new Promise异常分析
-
-在 new Promise中的执行器，如果该执行器中某些代码执行错误，或者开发人员主动抛出错误，这个错误就应该被捕获，并修改状态和数据，保证链式的调用的继续。
-
-```js
-let p = new Promise((resolve,reject)=>{
-    throw 5 
-})
-p.then((data)=>{},(err)=>{
-    console.log(err)
-})  
-// 5
-```
-
-在执行器中主动抛出错误，它可以交由onRejected函数callback执行。
-
-
-
-
-
-#### 2 整体架构
+#### 1 整体架构
 
 ![statue](../img/statue.png)
 
-**IIFE：**
+**IIFE：**IIFE（Imdiately Invoked Function Expression 立即执行的函数表达式
 
-  1.写Promise构造函数
 
-  2.将Promise向外暴露
 
-```js
-/*
-	自定义Promise函数模块：IIFE（Imdiately Invoked Function Expression 立即执行的函数表达式）
-*/
-( function (window){
-	/*	Promise 构造函数
-		executor:执行器函数（callback)*/
-	function Promise(executor){
-		executor(this)
-	}
-	
-	/*暴露Promise*/
-	window.Promise = Promise
-}(window))
-```
+#### 2 细节实现
 
-**添加Promise原型对象上的方法**
-
-​	1. then()
-
-​	2. catch()
-
-```js
- /*
-        指定一个成功/失败的回调函数
-        返回一个新的promise对象
- */ 
-Promise.prototype.then = function(onResolved,onRejected){}
-/*
-        指定一个失败的回调函数
-        返回一个新的promise对象
-*/
-Promise.prototype.catch = function(onRejected){}
-```
-
-**添加Promise函数对象上的方法**
-
-```js
-/*
-	resolve方法：返回一个成功状态的Promise
-	reject方法：返回一个失败状态的Promise
-	race方法:返回一个Promise,其状体由第一个完成的Promise 来决定
-	all方法：返回一个Promise,全部为成功就返回成功，若有一个失败，则返回失败状态
-*/
-Promise.resolve = function (value){}
-Promise.reject = function (reason){}
-Promise.race = function (promisesList){}
-Promise.all = function (promisesList){}
-```
-
-#### 3 细节实现
-
-在了解Promise工作细节之前，我们需要先知道Promise是如何使用的。这个知识点同学们可以从网上自行学习！
-
-##### 3.1 填充构造函数
-
-调用Promise
-
-```js
-const exec = (reslove,reject)=>{
-    setTimeout(()=>{
-        if(Date.now()%2){
-            console.log("获取数据成功DATA")
-            reslove("获取数据成功")
-        }else{
-            console.log("获取数据失败DATA")
-            reject("获取数据失败")
-        }  
-    },1000)
-}
-const p = new Promise(exec)
-```
-
-我们传入了一个函数executor，而且这个函数被立即执行，不仅如此，这个函数还会执行resolve或reject。说明构造函数里有resolve和reject方法。因此我们加入如下内容
+##### 2.1 填充构造函数
 
 ```js
 function Promise(executor){
@@ -6765,52 +6469,38 @@ function Promise(executor){
 }
 ```
 
-目前为止：我们需要了解调用Promise的全过程，这里我们回顾new 动作会执行的内容，一旦new 之后 executor(reslove,reject）就会被执行，resolve函数和reject函数作为参数被传递了。
-
-##### 3.2 状态和数据
-
-​	当我们的执行器executor执行reslove()或者reject()函数时，这两个函数会把异步或者同步得到的数据进行存储，并且改变Promise状态。
+##### 2.2 状态，数据和回调函数
 
 ```js
 const PENDING = 'pending'
 const RESOLVED = 'resolved'
 const REJECTED = 'rejected'
 function Promise(executor){
-    this.status = PENDING  // 给promise对象指定status属性，初始值为pending
-	this.data = undefined  // 给promise对象指定一个存储结果的data
-
+    this.status = PENDING  
+	this.data = undefined 
+	self.callbacks = [] // 每个原生的解构为：{onResolved(){},onRejected(){}}
     function resolve(data){}
     function reject(err){}
     executor(resolve,reject)
 }
 ```
 
-##### 3.3 指定函数callback的分析
+##### 2.3 指定函数callback的分析
 
-- [x] ​	***<u>then和 catch原型方法是用来指定callback的</u>***
-
-​	当我们的用户拿到数据并且调用resolve或者reject函数将其存储，然后改变状态。对于用户获得的数据需要经过处理，这是就需要then
-
-和catch中指定的callback函数支持。
-
-​	这里有一个问题:因为用户获得数据是一个异步的过程，可能马上就获得到数据了，也可能要很久才能得到数据，这个时间无法被确
-
-定。一旦数据获得，这时执行器将会执行resolve和reject触发状态改变。、
-
-- **先获得数据，后指定callback**
+```
+then和 catch原型方法是用来指定callback
+	先获得数据，后指定callback
+	先指定callback，后获得数据
+```
 
 ```js
-//satuation one 先获得数据，后指定callback
 let p = new Promise((resolve,reject)=>{
 	resolve("立即获得数据，但未指定callback")
 })
 p.then((data)=>{console.log(data)},(err)=>{})
 ```
 
-- **先指定callback，后获得数据**
-
 ```js
-//satuation two 先指定callback,后获得数据
 let p = new Promise((resolve,reject)=>{
 	setTimeout(()=>{
 		resolve("延时获得数据，且已指定callback")
@@ -6819,709 +6509,320 @@ let p = new Promise((resolve,reject)=>{
 p.then((data)=>{console.log(data)},(err)=>{})
 ```
 
-如上，执行resolve会改变状态，而callback可能出现未指定和已经指定的情况。
+##### 3.4 resolve \ reject函数实现
 
-**我们要求的是如果已经指定callback，那么状态改变时我们就调用callback; 如果未指定callback, 那么当指定时，callback就要调用。**
-
-这就需要我们将指定的callback进行存储
-
-```js
-function Promise(executor){
-    let self = this   //修改this 指向
-    self.status = PENDING
-    self.data = undefined
-    self.callbacks = [] // 每个原生的解构为：{onResolved(){},onRejected(){}}
-    
-    function resolve(data){}
-    function reject(err){}
-    executor(reslove,reject)
-}
+```
+细节1:  状态只能修改一次，故需要做状态判断。
+细节2:  如果先指定callback，进行“异步”执行
 ```
 
-##### 3.4 resolve 函数实现
-
-- resolve实现
-
 ```js
-function resolve(data){
-    if(self.status!==PENDING){
-        return
-    }
-    // 存储数据
-    self.data = data   //  闭包结构，可以访问上级函数的变量
-    // 修改状态
-    self.status = RESOLVED
-    // 如果callbacks有待执行的callback,立即异步执行callback,
-    if(self.callbacks.length>0){
-        self.callbacks.forEach(cbObj=>{
-            setTimeout(()=>{
-                cbObj.onResolved(self.data)
-            })  
-        })
-    }
-}
-```
-
-细节1：如果先指定callback，后获取数据，那么我们就要将callbacks中的callback进行“异步”执行，即加入队列。
-
-细节2：因为状态只能修改一次，故需要做状态判断。
-
-- reject函数实现，原理同上
-
-```js
-function reject(err){
-    if(self.status!==PENDING){
-        return
-    }
-    self.data = err
-    self.status = REJECTED
-    if(self.callbacks.length>0){
-        self.callbacks.forEach(cbObj=>{
-            setTimeout(()=>{
-                cbObj.onRejected(self.data)
-            })  
-        })
-    }
-}
-```
-
-
-
-##### 3.5 执行器异常分析
-
-在promise中1.1.5 中我们介绍一个new Promise问题。执行器也会抛出异常
-
-那么在我们的代码中就需要对这个错误进行捕获，并主动调用reject修改状态和数据，再去执行callbacks。
-
-```js
-try{
-    executor(resolve,reject)
-}catch(e){
-    resolve(e)
-}
-```
-
-
-
-
-
-##### 3.6 then 的实现
-
-###### 1. 在3.3中satuation two 情境下
-
-```js
- Promise.prototype.then = function(onResolved,onRejected=(err)=>{throw err}){
-     //  假设当前状态还是Pending 状态，将回调函数保存起来。
-     this.callbacks.push({onResolved,onRejected})
- }
-```
-
-因为穿透问题，我们需要对resolve和reject函数做一个补丁,加入异常处理代码
-
-```js
-function resolve(data){
-    if(self.status!==PENDING){
-        return
-    }
+function resolve(data) {
+    if (self.status !== PENDING) return 
     self.data = data
     self.status = RESOLVED
-    if(self.callbacks.length>0){
-        self.callbacks.forEach(cbObj=>{
-            setTimeout(()=>{
-                // 异常处理
-                try{
-                    cbObj.onResolved(self.data)
-                }catch(err){
-                    console.log("err",err)
-                }
-            })  
-        })
-    }
-}
-function reject(err){
-    if(self.status!==PENDING){
-        return
-    }
-    self.data = err
-    self.status = REJECTED
-    if(self.callbacks.length>0){
-        self.callbacks.forEach(cbObj=>{
-            setTimeout(()=>{
-                try{
-                    cbObj.onRejected(self.data)
-                }catch(err){
-                    console.log("err:",err)
-                }
-
-            })  
+    if (self.callbacks.length > 0) {
+        self.callbacks.forEach(item => {
+            item.onResolved()
         })
     }
 }
 ```
 
-这个时候就可以使用callbacks中的指定函数了
+##### 2.5 执行器异常分析
+
+```
+执行器也会抛出异常，那么在我们的代码中就需要对这个错误进行捕获，并主动调用reject修改状态和数据
+```
 
 ```js
-const exec = (resolve, reject) => {
-    setTimeout(() => {
-        if (Date.now() % 2) {
-            console.log("获取数据成功")
-            resolve("获取数据成功flag")
+//执行器异常处理
+try {
+    executor(resolve, reject)
+} catch (e) {
+    reject(e)
+}
+```
+
+##### 2.6异常穿透和中断分析
+
+```js
+Promise.prototype.then = 
+	function (onResolved = (data) => { return data }, onRejected = (err) => { throw err }) //异常穿透
+```
+
+```js
+function handler_async(callback) {
+    try {
+        let res = callback(self.info);
+        if (res instanceof Mypromise) {
+            res.then(
+                (data) => {
+                    r(data);
+                },
+                (err) => {
+                    j(err);
+                }
+            );
         } else {
-            console.log("获取数据失败")
-            reject("获取数据失败flag")
+            r(res); 
         }
-    }, 1000)
-
+    } catch (e) {
+        j(e);  //中断
+        if(e instanceof Error)throw Error(e);   
+    }
 }
-const p = new Promise(exec)
-
-p.then((data) => {console.log('success ',data)},
-       (err) => {console.log('failure',err)})
-p.then((data) => { console.log('success2 ', data) }, 
-        (err) => { console.log('failure2', err) })
-/*
-      获取数据失败
-      failure 获取数据失败flag
-      failure2 获取数据失败flag
- */
 ```
 
-###### 2.现在我们需要考虑satuation one 先获得数据，后指定回调函数的问题
+##### 2.7 then /catch的实现
 
-```js
- Promise.prototype.then = function(onResolved,onRejected=(err)=>{throw err}){
-     if(this.status === PENDING){
-         //当前状态还是Pending 状态，将回调函数保存起来。
-         this.callbacks.push({onResolved,onRejected})
-     }else if(this.status === RESOLVED){
-         setTimeout(()=>{
-             try{
-                 onResolved(this.data)
-             }catch(err){
-                 console.log("err2 OnResolve",err)
-             }
-         })
-     }else{
-         setTimeout(()=>{
-             try{
-                 onRejected(this.data)
-             }catch(err){
-                 console.log("err2 OnReject",err)
-             }
-         })
-     }
- }
+```
+1. then 返回的是一个promise
+2. 当前then返回的promise与指定回调函数返回的Promise之间的问题处理
+3. undefined作为参数进行传递时，不会改变默认参数值
 ```
 
-我们再次调用使用同步方式调用
+
+
+#### 3 Promise复现
+
+##### 3.1 核心实现
 
 ```js
-  const exec = (resolve, reject) => {
-      if (Date.now() % 2) {
-          resolve("获取数据成功flag")
-      } else {
-          reject("获取数据失败flag")
+(function (window) {
+  const A = "A1";
+  const B = "B1";
+  const C = "C1";
+  function Mypromise(exec) {
+    let self = this;
+    self.info = undefined;
+    self.status = A;
+    self.callbacks = [];
+    function handler(info, status, callback) {
+      if (self.status != A) return;
+      self.info = info;
+      self.status = status;
+      if (self.callbacks.length > 0) {
+        self.callbacks.forEach((item) => {
+          setTimeout(() => {
+            item[callback]();
+          });
+        });
       }
+    }
+    function resolve(data) {
+      handler(data, B, "OnResolved");
+    }
+    function reject(err) {
+      handler(err, C, "OnRejected");
+    }
+    try {
+      exec(resolve, reject);
+    } catch (e) {
+      reject(e);
+    }
   }
-const p = new Promise(exec)
-
-p.then((data) => { console.log('success ', data) }, 
-         (err) => { console.log('failure', err) })
-p.then((data) => { console.log('success2 ', data) })
+  window.Mypromise = Mypromise;
+  Mypromise.prototype.then = function (OnResolve=(data)=>{return data}, OnReject=(err)=>{throw err}) {
+    let self = this;
+    return new Mypromise((r, j) => {
+      function handler_async(callback) {
+        try {
+          let res = callback(self.info);
+          if (res instanceof Mypromise) {
+            res.then(
+              (data) => {
+                r(data);
+              },
+              (err) => {
+                j(err);
+              }
+            );
+          } else {
+            r(res); // 返回结果不为Promise，那么就对其返回值进行处理
+          }
+        } catch (e) {
+          j(e);
+          if(e instanceof Error)throw Error(e);  
+        }
+      }
+      if (self.status == B) {
+        setTimeout(() => {
+          handler_async(OnResolve);
+        });
+      } else if (self.status == C) {
+        setTimeout(() => {
+          handler_async(OnReject);
+        });
+      } else {
+        self.callbacks.push({
+          OnResolved: () => {
+            handler_async(OnResolve);
+          },
+          OnRejected: () => {
+            handler_async(OnReject);
+          },
+        });
+      }
+    });
+  };
+  Mypromise.prototype.catch = function (OnReject){
+     this.then(undefined,OnReject)
+  }
+})(window);
 ```
 
-
-
-###### 3.这次我们需要考虑回调函数的返回结果
-
-then一旦执行，必然返回一个Promise对象。该Promise返回的内容则完全由then中指定的回调函数决定。无论是onResolved还是onRejected,它们的返回结果只有三种情况：第一种抛出异常、第二种返回一个非Promise对象，第三种返回一个Promise对象。
+##### 2.resolve/reject类方法
 
 ```js
-Promise.prototype.then = function (onResolved=(data)=>{return data}, onRejected = (err) => { throw err }) {
-    const self = this
-    return new Promise((resolve, reject) => {
-        if (self.status === PENDING) {
-            //当前状态还是Pending 状态，将回调函数保存起来。
-            self.callbacks.push({ onResolved, onRejected })
-        } else if (self.status === RESOLVED) {
-            //当前状态是RESOLVED 状态，则异步执行onResolved指定回调函数
-            setTimeout(() => {
-                try {
-                    const result = onResolved(self.data)
-                    //返回结果有两类：Promise 和 非 Promise
-                    if (result instanceof Promise) { // promise
-                        result.then(
-                            (value) => {
-                                resolve(value)
-                            },
-                            (err) => {
-                                reject(err)
-                            }
-                        )
-                    } else {                          //非promise
-                        resolve(result)
-                    }
-                } catch (err) {
-                    reject(err)
-                }
-            })
-        } else {
-            //当前状态是REJECTED 状态，则异步执行onRejected指定回调函数
-            setTimeout(() => {
-                try {
-                    const result = onRejected(self.data)
-                    if (result instanceof Promise) { // promise
-                        result.then(resolve, reject)
-                    } else {                          //非promise
-                        resolve(result)
-                    }
-
-                } catch (err) {
-                    reject(err)
-                }
-            })
+  MyPromise.resolve = function (value){
+    return new MyPromise((r,j)=>{
+        if(value instanceof MyPromise){
+            value.then(r,j) ;
+        }else{
+            r(value) ;
         }
+    })
+  }
+
+  MyPromise.reject = function(reason){
+    return new MyPromise((r,j)=>{
+        j(reason) ;
+        if(reason instanceof MyPromise){
+          reason.catch((err)=>{
+            setTimeout(()=>{throw Error(err) ;})
+          })
+        }
+    })
+  }
+```
+
+这么写的原因是文档的要求
+
+```js
+// const p = MyPromise.resolve("data")
+// const p1 = MyPromise.resolve(MyPromise.resolve("r - r"))
+// const p2 = MyPromise.resolve(MyPromise.reject("r - j"))
+// let pp =  p.then((data)=>{console.log("p data",data)},(err)=>{console.log("p err",err)})
+// let p11 = p1.then((data)=>{console.log("p1 data",data)},(err)=>{console.log("p1 err",err)})
+// let p22  = p2.then((data)=>{console.log("p2 data",data)},(err)=>{console.log("p2 err",err)})
+// setTimeout(()=>{
+//   console.log(p);
+//   console.log(p1);
+//   console.log(p2);
+// },1000)
+// setTimeout(()=>{
+//   console.log(pp);
+//   console.log(p11);
+//   console.log(p22);
+// },1000)
+  
+const p3 = MyPromise.reject("err")
+const p4 = MyPromise.reject( MyPromise.resolve("j - r"))
+const p5 = MyPromise.reject( MyPromise.reject("j - j"))
+let p33 = p3.then((data)=>{console.log("p3 data",data)},(err)=>{console.log("p3 err",err)})
+let p44 = p4.then((data)=>{console.log("p4 data",data)},(err)=>{console.log("p4 err",err)})
+let p55 = p5.then((data)=>{console.log("p5 data",data)},(err)=>{console.log("p5 err",err)})
+setTimeout(()=>{
+  console.log(p3);
+  console.log(p4);
+  console.log(p5);
+},1000)
+setTimeout(()=>{
+  console.log(p33);
+  console.log(p44);
+  console.log(p55);
+},2000)
+```
+
+##### 3.all/race类方法
+
+```js
+Promise.all = function (promisesList) { 
+    let lists = new Array(promisesList.length)
+    let counterflag = promisesList.length
+    return new Promise((resolve,reject)=>{
+        promisesList.forEach((item,index)=>{
+            Promise.resolve(item).then(   // 担心promisList不是一个Promised对象
+                value =>{
+                    lists[index] = value
+                    counterflag -=1
+
+                    //如果全部成功调用resolve。
+                    if(!counterflag){
+                        resolve(lists)
+                    }
+                },
+                err =>{
+                    reject(err)
+                }
+            )
+        })
+    })
+}
+
+Promise.race = function (promisesList) { 
+    let successflag = false
+    return new Promise((resolve,reject)=>{
+        promisesList.forEach((item,index)=>{
+            Promise.resolve(item).then(   // 担心promisList不是一个Promised对象
+                (data)=>{
+                    if(!successflag){
+                        resolve(data)
+                        successflag = true
+                    }
+                },err=>{
+                    reject(err)
+                })
+        })
     })
 }
 ```
 
 
 
-##### 4.终版
-
-上面的我们考虑了Promise先获取数据，后指定回调函数。在触发then时，状态就已经变为resolved或rejected。但是对于Pending状态的情况，我们无法修改待返回Promise的状态。这就需要进行处理,让Pending状态的Promise执行时也会修改待返回的Promise的状态。
-
-下面时经过模块话的精简的代码
+##### 4.自定义方法
 
 ```js
- Promise.prototype.then = function (onResolved = (data) => { return data }, onRejected = (err) => { throw err }) {
-     const self = this
-     return new Promise((resolve, reject) => {
-
-         //调用指定回调函数，根据结果，改变Promise状态和数据
-         function handle(callback){
-             try {
-                 const result = callback(self.data)
-                 //返回结果有两类：Promise 和 非 Promise
-                 if (result instanceof Promise) { // promise
-                     result.then(
-                         (value) => {
-                             resolve(value)
-                         },
-                         (err) => {
-                             reject(err)
-                         }
-                     )
-                     // result.then(resolve,rejecte)
-                 } else {                          //非promise
-                     resolve(result)
-                 }
-             } catch (err) {
-                 reject(err)
-             }
-         }
-
-         if (self.status === PENDING) {
-             //当前状态还是Pending 状态，将回调函数保存起来。但是在执行的时候需要改变 Promise 状态和数据
-             self.callbacks.push(
-                 {
-                     onResolved(data) {
-                         handle(onResolved)
-                     },
-                     onRejected(err) {
-                         handle(onRejected)
-                     }
-                 })
-         } else if (self.status === RESOLVED) {
-             //当前状态是RESOLVED 状态，则异步执行onResolved指定回调函数，并改变Promise状态和数据
-             setTimeout(() => {
-                 handle(onResolved)
-             })
-         } else {
-             //当前状态是REJECTED 状态，则异步执行onRejected指定回调函数，并改变Promise状态和数据
-             setTimeout(() => {
-                 handle(onRejected)
-             })
-         }
-     })
- }
-```
-
-###### 3.7 catch 的实现
-
-介绍它之前我们了解一个undefined 做参数起占位符的作用,和不传参获得undefined
-
-```js
-function Run(param1='arg1',param2){
-    console.log(param1)
-    console.log(param2)
+Promise.resolveDelay = function (value,timeout=0){
+    return new Promise((resolve, reject) => {
+        if (value instanceof Promise) {
+            setTimeout(()=>{
+                value.then(resolve, reject)
+            },timeout)
+        } else {
+            setTimeout(()=>{
+                resolve(value)
+            },timeout) 
+        }
+    }) 
 }
-Run(undefined)
-//打印结果
-arg1
-undefined
-```
-
-undefined做参数时，函数会保存默认参数
-
-然后我们看catch的实现
-
-```js
-Promise.prototype.catch = function (onRejected) {
-    return this.then(undefined,onRejected)
+Promise.rejectDealy= function (reason,timeout=0){
+    return new Promise((resolve, reject) => {
+        setTimeout(()=>{
+            reject(reason)
+        },timeout)
+    })
 }
 ```
 
 
 
-#### 4 Promise复现
-
-1. 先看整体架构
-
-   ```js
-   (function(window){
-       const PENDING  = 'pending'
-       const RESOLVED = 'fulfilled'
-       const REJECTED = 'failure'
-       
-   	function Promise(exec){
-           const self = this
-           self.status = PENDING
-           self.data = undefined
-           self.callbacks = [] // 每个原生的结构为：{onResolved(){},onRejected(){}}
-           
-   		function resolve(data){}
-           function reject(reason){}
-           //执行器异常处理
-           try {
-               // 立即同步执行executor
-               executor(resolve, reject)
-           } catch (e) {// 如果执行器抛出异常，promise对象变为rejected状态
-               reject(e)
-           }
-   	}
-       
-       window.Promise = Promise
-       Promise.prototype.then = function (onResolved,onRejected){}
-   
-       Promise.prototype.catch = function(onRejected){}
-        /*
-   	resolve类方法：返回一个成功状态的Promise
-   	reject类方法：返回一个失败状态的Promise
-   	race类方法:返回一个Promise,其状体由第一个完成的Promise 来决定
-   	all类方法：返回一个Promise,全部为成功就返回成功，若有一个失败，则返回失败状态
-       */
-       Promise.resolve = function (data) { }
-       Promise.reject = function (reason) { }
-       Promise.race = function (promisesList) { }
-       Promise.all = function (promisesList) { }
-   })(window)
-   ```
-
-2. 完成resolve和reject两个函数
-
-   ```js
-    /*
-           resolve和reject 完成的内容
-           1.判断状态，只有是PENDING才可以进入工作，否则直接返回空
-           2.通过状态判断后，【存储数据，修改状态】
-           3.判断是否存在已经指定的回调函数，如果存在则异步循环执行
-           4.如果未存在指定回调函数，则略过
-    */
-   
-   function resolve(data){
-       if(self.status !== PENDING){
-           return
-       }
-       self.status = RESOLVED
-       self.data   = data 
-       if(self.callbacks.length>0){
-           self.callbacks.forEach((item)=>{
-               setTimeout(()=>{
-                   try{
-                       item.onResolved(self.data)
-                   }catch(err){
-                       console.log("先指定的onResolved发生异常，异常信息:【", err,"】")
-                   }
-               })
-           })
-       }             
-   }
-   function reject(reason){
-       if(self.status !== PENDING){
-           return
-       }
-       self.status = REJECTED
-       self.data   = data 
-       if(self.callbacks.length>0){
-           self.callbacks.forEach((item)=>{
-               setTimeout(()=>{
-                   try{
-                       item.onRejected(self.data)
-                   }catch(err){
-                       console.log("先指定的onRejected发生异常，异常信息:【", err,"】")
-                   }
-               })
-           })
-       }  
-   }
-   ```
-
-3. then/catch原型方法实现
-
-   then方法需要实现的功能：
-
-   1.返回一个带状态的Promise
-
-   2.指定回调函数
-
-   3.根据情况将指定回调函数进行调用或者保存
-
-   4.穿透的实现
-
-   ```js
-   Promise.prototype.then = function (onResolved = (data) => { return data }, onRejected = (reason) => { throw reason }) {
-       const self = this
-       return new Promise((resolve, reject) => {
-   
-           function handleStatus_RESOLVED_REJECTED(callback) {
-               setTimeout(() => {
-                   // 执行 callback
-                   // 1. callback 执行错误，或者抛出异常
-                   // 2. callback 返回一个  Promise
-                   // 2. callback 返回一个 非Promise
-                   try {
-                       const result = callback(self.data)
-                       if (result instanceof Promise) {
-                           result.then(resolve, reject)
-                       } else {
-                           resolve(result)
-                       }
-                   } catch (err) {
-                       reject(err)
-                   }
-               })
-           }
-           function handlestatus_PENDING(callback) {
-               try {
-                   const result = callback(self.data)
-                   if (result instanceof Promise) {
-                       result.then(resolve, reject)
-                   } else {
-                       resolve(result)
-                   }
-               } catch (err) {
-                   reject(err)
-               }
-           }
-           //当前状态还是PENDING 状态，
-           //将回调函数保存起来。
-           //但是在执行的时候需要改变 新Promise 状态和数据
-           if (self.status === PENDING) {
-               self.callbacks.push({
-                   onResolved() {
-                       handlestatus_PENDING(onResolved)
-                   },
-                   onRejected() {
-                       handlestatus_PENDING(onRejected)
-                   }
-               })
-           }
-   
-           //当前状态是RESOLVED 状态，
-           //则异步执行onResolved指定回调函数，
-           //并改变 新Promise 状态和数据
-           else if (self.status === RESOLVED) {
-               handleStatus_RESOLVED_REJECTED(onResolved)
-           }
-   
-           //当前状态是REJECTED 状态，
-           //则异步执行onRejected指定回调函数，
-           //并改变Promise状态和数据
-           else {
-               handleStatus_RESOLVED_REJECTED(onRejected)
-           }
-       })
-   }
-   
-   Promise.prototype.catch = function (onRejected) {
-       return this.then(undefined, onRejected)
-   }
-   ```
-
-4. 类方法resolve/reject实现
-
-   ```js
-   Promise.resolve = function (value) { 
-       return new Promise((resolve,reject)=>{
-           if(value instanceof Promise){
-               value.then(resolve,reject)
-           }else{
-               resolve(value)
-           }
-   
-       })
-   }
-   
-   Promise.reject = function (reason) {
-       return new Promise((resolve, reject) => {
-           reject(reason)
-       })
-   } 
-   ```
-
-   这么写的原因是文档的要求
-
-   ```js
-   // const p = Promise.resolve("data")
-   // const p1 = Promise.resolve(Promise.resolve("r - r"))
-   // const p2 = Promise.resolve(Promise.reject("r - j"))
-   // p.then((data)=>{console.log("p data",data)},(err)=>{console.log("p err",err)})
-   // p1.then((data)=>{console.log("p1 data",data)},(err)=>{console.log("p1 err",err)})
-   // p2.then((data)=>{console.log("p2 data",data)},(err)=>{console.log("p2 err",err)})
-   const p3 = Promise.reject("err")
-   const p4 = Promise.reject( Promise.resolve("j - r"))
-   const p5 = Promise.reject( Promise.reject("j - j"))
-   p3.then((data)=>{console.log("p3 data",data)},(err)=>{console.log("p3 err",err)})
-   p4.then((data)=>{console.log("p4 data",data)},(err)=>{console.log("p4 err",err)})
-   p4.then((data)=>{console.log("p5 data",data)},(err)=>{console.log("p5 err",err)})
-   ```
-
-5. 类方法all/race方法实现
-
-   ```js
-   Promise.all = function (promisesList) { 
-       let lists = new Array(promisesList.length)
-       let counterflag = promisesList.length
-       return new Promise((resolve,reject)=>{
-           promisesList.forEach((item,index)=>{
-               Promise.resolve(item).then(
-                   value =>{
-                       lists[index] = value
-                       counterflag -=1
-   
-                       //如果全部成功调用resolve。
-                       if(!counterflag){
-                           resolve(lists)
-                       }
-                   },
-                   err =>{
-                       reject(err)
-                   }
-               )
-           })
-       })
-   }
-   ```
-
-   ```js
-   Promise.race = function (promisesList) { 
-       let successflag = false
-       return new Promise((resolve,reject)=>{
-           promisesList.forEach((item,index)=>{
-               Promise.resolve(item).then(
-                   (data)=>{
-                       if(!successflag){
-                           resolve(data)
-                           successflag = true
-                       }
-                   },err=>{
-                       reject(err)
-                   })
-           })
-       })
-   }
-   ```
-
-6. 自定义方法
-
-   ```js
-   Promise.resolveDelay = function (value,timeout=0){
-       return new Promise((resolve, reject) => {
-           if (value instanceof Promise) {
-               setTimeout(()=>{
-                   value.then(resolve, reject)
-               },timeout)
-           } else {
-               setTimeout(()=>{
-                   resolve(value)
-               },timeout) 
-           }
-       }) 
-   }
-   Promise.rejectDealy= function (reason,timeout=0){
-       return new Promise((resolve, reject) => {
-           setTimeout(()=>{
-               reject(reason)
-           },timeout)
-       })
-   }
-   ```
-
-
-
-#### 5 ES6Class
+#### 4 ES6Class
 
 ```js
 (function (window) {
     const PENDING = 'pending'
     const RESOLVED = 'fulfilled'
     const REJECTED = 'failure'
-
     class Promise {
         constructor(executor) {
             let self = this   //存储当前Promise对象，供闭包使用
             self.status = PENDING
             self.data = undefined
             self.callbacks = [] // 每个原生的结构为：{onResolved(){},onRejected(){}}
-
-            /*
-            resolve和reject 完成的内容
-            1.判断状态，只有是PENDING才可以进入工作，否则直接返回空
-            2.通过状态判断后，【存储数据，修改状态】
-            3.判断是否存在已经指定的回调函数，如果存在则异步循环执行
-            4.如果未存在指定回调函数，则略过
-             */
-            function resolve(data) {
-                if (self.status !== PENDING) {
-                    return
-                }
-                // 存储数据
-                self.data = data
-                // 修改状态
-                self.status = RESOLVED
-                // 如果callbacks有待执行的callback,立即异步执行callback,
-                if (self.callbacks.length > 0) {
-                    self.callbacks.forEach(cbObj => {
-                        setTimeout(() => {
-                            try {
-                                cbObj.onResolved(self.data)
-                            } catch (err) {
-                                console.log("err OnResolve", err)
-                            }
-                        })
-                    })
-                }
-            }
-            function reject(err) {
-                if (self.status !== PENDING) {
-                    return
-                }
-                self.data = err
-                self.status = REJECTED
-                if (self.callbacks.length > 0) {
-                    self.callbacks.forEach(cbObj => {
-                        setTimeout(() => {
-                            try {
-                                cbObj.onRejected(self.data)
-                            } catch (err) {
-                                console.log("err OnReject", err)
-                            }
-                        })
-                    })
-                }
-            }
+            function resolve(data) {}
+            function reject(err) {}
             //执行器异常处理
             try {
                 executor(resolve, reject)
@@ -7530,141 +6831,23 @@ Promise.prototype.catch = function (onRejected) {
             }
         }
         //promise 原型对象上的方法
-        then = function (onResolved = (data) => { return data }, onRejected = (err) => { throw err }) {
-            const self = this
-            return new Promise((resolve, reject) => {
-
-                //调用指定回调函数，根据结果，改变Promise状态和数据
-                function handle(callback) {
-                    try {
-                        const result = callback(self.data)
-                        //返回结果有两类：Promise 和 非 Promise
-                        if (result instanceof Promise) { // promise 
-                            result.then(resolve, reject)
-                        } else {                          //非promise
-                            resolve(result)
-                        }
-                    } catch (err) {
-                        reject(err)
-                    }
-                }
-
-                if (self.status === PENDING) {
-                    //当前状态还是PENDING 状态，将回调函数保存起来。但是在执行的时候需要改变 Promise 状态和数据
-                    self.callbacks.push(
-                        {
-                            onResolved(data) {
-                                handle(onResolved)
-                            },
-                            onRejected(err) {
-                                handle(onRejected)
-                            }
-                        })
-                } else if (self.status === RESOLVED) {
-                    //当前状态是RESOLVED 状态，则异步执行onResolved指定回调函数，并改变Promise状态和数据
-                    setTimeout(() => {
-                        handle(onResolved)
-                    })
-                } else {
-                    //当前状态是REJECTED 状态，则异步执行onRejected指定回调函数，并改变Promise状态和数据
-                    setTimeout(() => {
-                        handle(onRejected)
-                    })
-                }
-            })
-        }
-        catch = function (onRejected) {
-            return this.then(undefined, onRejected)
-        }
-
-
+        then = function (onResolved = (data) => { return data }, onRejected = (err) => { throw err }) {}
+        catch = function (onRejected) {}
         // Promise函数对象的方法
-        static resolve = function (value) {
-            return new Promise((resolve, reject) => {
-                if (value instanceof Promise) {
-                    value.then(resolve, reject)
-                } else {
-                    resolve(value)
-                }
-            })
-        }
-
-        static reject = function (reason) {
-            return new Promise((resolve, reject) => {
-                reject(reason)
-            })
-        }
-        static race = function (promisesList) {
-            let successflag = false
-            return new Promise((resolve, reject) => {
-                promisesList.forEach((item, index) => {
-                    Promise.resolve(item).then(
-                        (data) => {
-                            if (!successflag) {
-                                resolve(data)
-                                successflag = true
-                            }
-                        }, err => {
-                            reject(err)
-                        })
-                })
-            })
-
-        }
-        static all = function (promisesList) {
-            let lists = new Array(promisesList.length)
-            let counterflag = promisesList.length
-            return new Promise((resolve, reject) => {
-                promisesList.forEach((item, index) => {
-                    Promise.resolve(item).then(
-                        value => {
-                            // lists.splice(index,1,value)
-                            lists[index] = value
-                            counterflag -= 1
-
-                            //如果全部成功调用resolve。
-                            if (!counterflag) {
-                                resolve(lists)
-                            }
-                        },
-                        err => {
-                            reject(err)
-                        }
-                    )
-                })
-            })
-        }
-        static resolveDelay = function (value, timeout = 0) {
-            return new Promise((resolve, reject) => {
-                if (value instanceof Promise) {
-                    setTimeout(() => {
-                        value.then(resolve, reject)
-                    }, timeout)
-                } else {
-                    setTimeout(() => {
-                        resolve(value)
-                    }, timeout)
-                }
-            })
-        }
-        static rejectDealy = function (reason, timeout = 0) {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    reject(reason)
-                }, timeout)
-            })
-        }
+        static resolve = function (value) {}
+        static reject = function (reason) { }
+        static race = function (promisesList) {}
+        static all = function (promisesList) {}
+        static resolveDelay = function (value, timeout = 0) {}
+        static rejectDealy = function (reason, timeout = 0) {}
     }
-
     window.Promise = Promise
-
-
 }(window))
 ```
 
 
 
-#### 6 async和await
+#### 5 async和await
 
 - async 用来定义一个异步函数
 
@@ -7717,7 +6900,7 @@ let ok = Use()
 
 
 
-#### 7  JS 异步之宏队列和微队列
+#### 6  JS 异步之宏队列和微队列
 
 JS 中用来**存储待执行回调函数**的队列包含2 个不同特定的列队
 
@@ -7838,14 +7021,6 @@ new Promise((resolve,reject)=>{
 ```
 
 
-
-
-
-
-
-
-
-## JS高级
 
 
 
@@ -10975,14 +10150,19 @@ index.html
 	eslint:	 语法检查
 ```
 
-
-
 ```
 1. 进入要创建项目的目录
-2. vue create xxx
-3. cd xxx 
+2. vue create xxx 
+3. cd xxx  
 4. 启动项目 npm run serve
 ```
+
+```
+1. npm install
+2. npm run serve
+```
+
+
 
 ##### Vue2版本文件详情
 
