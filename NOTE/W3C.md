@@ -6449,6 +6449,8 @@ console.log('3s 后打印哎呦喂')
 
 ## JS高级
 
+### Promise
+
 #### 1 整体架构
 
 ![statue](../img/statue.png)
@@ -6588,12 +6590,14 @@ function handler_async(callback) {
 
 ##### 3.1 核心实现
 
+72行代码
+
 ```js
 (function (window) {
-  const A = "A1";
-  const B = "B1";
-  const C = "C1";
-  function Mypromise(exec) {
+  const A = "等待";
+  const B = "完成";
+  const C = "失败";
+  function Promise(exec) {
     let self = this;
     self.info = undefined;
     self.status = A;
@@ -6604,9 +6608,7 @@ function handler_async(callback) {
       self.status = status;
       if (self.callbacks.length > 0) {
         self.callbacks.forEach((item) => {
-          setTimeout(() => {
-            item[callback]();
-          });
+          setTimeout(() => {item[callback]();});
         });
       }
     }
@@ -6620,30 +6622,27 @@ function handler_async(callback) {
       exec(resolve, reject);
     } catch (e) {
       reject(e);
+      if (e instanceof Error) throw Error(e);
     }
   }
-  window.Mypromise = Mypromise;
-  Mypromise.prototype.then = function (OnResolve=(data)=>{return data}, OnReject=(err)=>{throw err}) {
+  window.Promise = Promise;
+  Promise.prototype.then = function (OnResolve = (data) => data,OnReject = (err) => {throw err;}) {
     let self = this;
-    return new Mypromise((r, j) => {
+    return new Promise((r, j) => {
       function handler_async(callback) {
         try {
           let res = callback(self.info);
-          if (res instanceof Mypromise) {
+          if (res instanceof Promise) {
             res.then(
-              (data) => {
-                r(data);
-              },
-              (err) => {
-                j(err);
-              }
+              (data) => {r(data)},
+              (err) => {j(err)}
             );
           } else {
-            r(res); // 返回结果不为Promise，那么就对其返回值进行处理
+            r(res);
           }
         } catch (e) {
           j(e);
-          if(e instanceof Error)throw Error(e);  
+          if (e instanceof Error) throw Error(e);
         }
       }
       if (self.status == B) {
@@ -6656,53 +6655,46 @@ function handler_async(callback) {
         });
       } else {
         self.callbacks.push({
-          OnResolved: () => {
-            handler_async(OnResolve);
-          },
-          OnRejected: () => {
-            handler_async(OnReject);
-          },
+          OnResolved: () => {handler_async(OnResolve);},
+          OnRejected: () => {handler_async(OnReject);},
         });
       }
     });
   };
-  Mypromise.prototype.catch = function (OnReject){
-     this.then(undefined,OnReject)
-  }
+  Promise.prototype.catch = function (OnReject = (err) => {throw err;}) {
+    this.then(undefined, OnReject);
+  };
 })(window);
 ```
 
 ##### 2.resolve/reject类方法
 
 ```js
-  MyPromise.resolve = function (value){
-    return new MyPromise((r,j)=>{
-        if(value instanceof MyPromise){
-            value.then(r,j) ;
+Promise.resolve = function (value){
+    return new Promise((r,j)=>{
+        if(value instanceof Promise){
+            value.then(r,j)
         }else{
-            r(value) ;
+            r(value)
         }
     })
-  }
-
-  MyPromise.reject = function(reason){
-    return new MyPromise((r,j)=>{
+} ;
+Promise.reject = function (reason){
+    return new Promise((r,j)=>{
         j(reason) ;
-        if(reason instanceof MyPromise){
-          reason.catch((err)=>{
-            setTimeout(()=>{throw Error(err) ;})
-          })
+        if(reason instanceof Promise){
+            reason.catch((err)=>{ setTimeout(()=>{throw Error(err) ;})})
         }
     })
-  }
+} ;
 ```
 
 这么写的原因是文档的要求
 
 ```js
-// const p = MyPromise.resolve("data")
-// const p1 = MyPromise.resolve(MyPromise.resolve("r - r"))
-// const p2 = MyPromise.resolve(MyPromise.reject("r - j"))
+// const p = Promise.resolve("data")
+// const p1 = Promise.resolve(Promise.resolve("r - r"))
+// const p2 = Promise.resolve(Promise.reject("r - j"))
 // let pp =  p.then((data)=>{console.log("p data",data)},(err)=>{console.log("p err",err)})
 // let p11 = p1.then((data)=>{console.log("p1 data",data)},(err)=>{console.log("p1 err",err)})
 // let p22  = p2.then((data)=>{console.log("p2 data",data)},(err)=>{console.log("p2 err",err)})
@@ -6717,66 +6709,81 @@ function handler_async(callback) {
 //   console.log(p22);
 // },1000)
   
-const p3 = MyPromise.reject("err")
-const p4 = MyPromise.reject( MyPromise.resolve("j - r"))
-const p5 = MyPromise.reject( MyPromise.reject("j - j"))
-let p33 = p3.then((data)=>{console.log("p3 data",data)},(err)=>{console.log("p3 err",err)})
-let p44 = p4.then((data)=>{console.log("p4 data",data)},(err)=>{console.log("p4 err",err)})
-let p55 = p5.then((data)=>{console.log("p5 data",data)},(err)=>{console.log("p5 err",err)})
-setTimeout(()=>{
-  console.log(p3);
-  console.log(p4);
-  console.log(p5);
-},1000)
-setTimeout(()=>{
-  console.log(p33);
-  console.log(p44);
-  console.log(p55);
-},2000)
+const p3 = Promise.reject("err");
+const p4 = Promise.reject(Promise.resolve("j - r"));
+const p5 = Promise.reject(Promise.reject("j - j"));
+let p33 = p3.then(
+    (data) => {
+        console.log("p3 data", data);
+    },
+    (err) => {
+        console.log("p3 err", err);
+    }
+);
+let p44 = p4.then(
+    (data) => {
+        console.log("p4 data", data);
+    },
+    (err) => {
+        console.log("p4 err", err);
+    }
+);
+let p55 = p5.then(
+    (data) => {
+        console.log("p5 data", data);
+    },
+    (err) => {
+        console.log("p5 err", err);
+    }
+);
+setTimeout(() => {
+    console.log(p3);
+    console.log(p4);
+    console.log(p5);
+}, 1000);
+setTimeout(() => {
+    console.log(p33);
+    console.log(p44);
+    console.log(p55);
+}, 1000);
 ```
 
 ##### 3.all/race类方法
 
 ```js
-Promise.all = function (promisesList) { 
-    let lists = new Array(promisesList.length)
-    let counterflag = promisesList.length
-    return new Promise((resolve,reject)=>{
-        promisesList.forEach((item,index)=>{
-            Promise.resolve(item).then(   // 担心promisList不是一个Promised对象
-                value =>{
-                    lists[index] = value
-                    counterflag -=1
-
-                    //如果全部成功调用resolve。
-                    if(!counterflag){
-                        resolve(lists)
+  Promise.all = function(lists){
+    let ls = new Array(lists.length)
+    let flag = lists.length
+    return new Promise((r,j)=>{
+        lists.forEach((item,index)=>{
+            Promise.resolve(item).then(  // 担心promisList不是一个Promised对象
+                data=>{
+                    ls[index] = data
+                    flag -=1
+                    if(!flag){
+                        r(ls)
                     }
-                },
-                err =>{
-                    reject(err)
-                }
+                },err=>{ j(err)}
             )
         })
     })
-}
-
-Promise.race = function (promisesList) { 
-    let successflag = false
-    return new Promise((resolve,reject)=>{
-        promisesList.forEach((item,index)=>{
-            Promise.resolve(item).then(   // 担心promisList不是一个Promised对象
-                (data)=>{
-                    if(!successflag){
-                        resolve(data)
-                        successflag = true
+  }
+  Promise.race = function (lists){
+    let flag = false 
+    return new Promise((r,j)=>{
+        lists.forEach(item=>{
+            Promise.resolve(item).then( // 担心promisList不是一个Promised对象
+                data=>{ 
+                    if(!flag){
+                        r(data)
+                        flag = true
                     }
-                },err=>{
-                    reject(err)
-                })
+                },
+                err =>{ j(err)}
+            )
         })
     })
-}
+  }
 ```
 
 
