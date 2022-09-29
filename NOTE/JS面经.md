@@ -68,6 +68,69 @@
 见 W3C JS 高级
 ```
 
+### ajax封装
+
+```js
+// get 封装
+MyAjax_get(url) {
+    return new Promise((r, j) => {
+        let xmr = new XMLHttpRequest();
+        xmr.open("get", url);
+        xmr.setRequestHeader ('Content-type', 'application/json');
+        xmr.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                if (this.status === 200) {
+                    r(this.response);
+                } else j("err");
+            }
+        };
+        xmr.send();
+    });
+},
+```
+
+
+
+## Async
+
+```
+Promise 的语法糖：
+	async 函数返回promise对象,因为return 的结果会被默认包装成Promise
+	
+await 
+	用来等待【一个成功】的Promise对象，且接受其成功的数据，只能使用在async函数中
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

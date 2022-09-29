@@ -6856,31 +6856,23 @@ Promise.rejectDealy= function (reason,timeout=0){
 
 #### 5 async和await
 
-- async 用来定义一个异步函数
-
+```
+async 用来定义一个异步函数
   语法：
+  	async function funName(params){ ..... }
+	async 函数返回promise对象,因为return 的结果会被默认包装成Promise
 
-  ​	async function funName(params){ ..... }
-
-  ​	async 函数返回promise对象,因为return 的结果会被默认包装成Promise
-
-
-
-- await 用来等待一个成功的Promise对象，
-
+await 用来等待【一个成功】的Promise对象，且接受其成功的数据
   语法：
+	[return_value] = await expression
+		表达式 expression 是一个Promise 或任何要等待的值
+		返回值返回Promise对象的处理结果【即数据】，若等待的不是Promise对象，则返回该值本身。
+  第一要义：await 要在async 函数体中使用
+  第二要义：等待代码执行完毕	 
+  第三要义：代码执行的【成功的结果【即数据】】进行接收，倘若失败，则需要使用try-catch 获取失败的结果【即数据】
+```
 
-  ​	[return_value] = await expression
-
-  ​	**表达式** expression 是一个Promise 或任何要等待的值
-
-  ​	**返回值** 返回Promise对象的处理结果，若等待的不是Promise对象，则返回该值本身。
-
-​	第一要义：等待代码执行完毕
-
-​	第二要义：代码执行的**成功的结果**进行接收，倘若失败，则需要使用try-catch
-
-
+await获取成功promise
 
 ```js
 function fn(){
@@ -6891,18 +6883,84 @@ function fn(){
         },1000)
     })
 }
-
 async function Use(){
     try{
         const result = await fn()
-        console.log("Promise对象成功----- ",result)
+        console.log("Promise对象成功--接收返回Promise数据 ",result)
         return result
     }catch(err){
-        console.log("Promise对象失败----- ",err)
+        console.log("Promise对象失败--接收失败数据 ",err)
     }
 }
-
 let ok = Use()
+```
+
+await 实现顺序获取
+
+```js
+(function (window) {
+  function fetch_example() {
+      fetch("http://localhost:5000/students/1", {
+          method: "GET",
+          mode: "cors",
+      }).then((data) => {
+          return data.json();
+          data.json();
+      }).then(data => {
+          console.log(data);
+      });
+
+      fetch("http://localhost:5000/students/2", {
+          method: "GET",
+          mode: "cors",
+      }).then((data) => {
+          return data.json();
+          data.json();
+      }).then(data => {
+          console.log(data);
+      });
+      fetch("http://localhost:5000/students/3", {
+          method: "GET",
+          mode: "cors",
+      }).then((data) => {
+          return data.json();
+          data.json();
+      }).then(data => {
+          console.log(data);
+      });
+  }
+
+    async function MyAsync_fetch() {
+
+        let resp1 = await fetch("http://localhost:5000/students/1", { method: "GET", mode: "cors", })
+        let json1 = await resp1.json()
+        console.log(json1);
+
+        let resp2 = await fetch("http://localhost:5000/students/2", { method: "GET", mode: "cors", })
+        let json2 = await resp2.json()
+        console.log(json2);
+        let resp3 = await fetch("http://localhost:5000/students/3", { method: "GET", mode: "cors", })
+        let json3 = await resp3.json()
+        console.log(json3);
+    }
+    
+    async function MyAsync_(){
+        // promise.all 实现并发异步
+        let response = await Promise.all([
+            fetch("http://localhost:5000/students/1", { method: "GET", mode: "cors", }),
+            fetch("http://localhost:5000/students/2", { method: "GET", mode: "cors", }),
+            fetch("http://localhost:5000/students/3", { method: "GET", mode: "cors", })
+        ])
+        console.log(response);
+        let jsons = response.map((response)=>{return response.json()})
+        console.log(jsons);
+        let datas = await Promise.all(jsons)
+        console.log(datas);
+    }
+  window.fetch_example = fetch_example;
+  window.MyAsync_fetch = MyAsync_fetch;
+})(window);
+
 ```
 
 
@@ -11376,7 +11434,6 @@ import VueRoute from "vue-router"
 export const plug  = {
     install(Vue,options){
         //安装vue-router插件
-        console.log("正在使用插件进行vue-router导入");
         Vue.use(VueRoute)
     }
 }
@@ -11724,7 +11781,6 @@ const options = {
 ```
 优势：
 	不影响router.js 配置，即不需要再router.js 进行任何配置
-
 ```
 
 ```html
@@ -12281,11 +12337,13 @@ src
 
 # 07 axios
 
+前端最流行的ajax请求库
+
 $\bf\textcolor{red}{第三方框架必须进行单独封装}$
 
 ```
 安装
-	npm install axios
+	npm install axios -S 
 	
 引入
 	import axios from "axios"
@@ -12297,9 +12355,11 @@ Vue-resource
 	Vue1.0版本主推,现在推荐使用axios
 ```
 
-## CROS跨站
+## 基础知识
 
-### 同源策略
+### CROS跨站
+
+#### 同源策略
 
 ``` 
 1. 协议名
@@ -12311,7 +12371,30 @@ Vue-resource
 
 <img src="../img2/axios1.png" alt="axios1" style="zoom:80%;" /> 
 
-### 脚手架协助开启代理服务器1
+#### cros 服务器携带特殊请求解决跨域
+
+```js
+app.use((req, res, next) => {
+    res.set({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'X-Requested-With,Content-Type',
+        'Access-Control-Allow-Methods': 'POST,GET',
+    })
+    req.method === 'OPTIONS' ? res.status(204).end() : next()
+})
+```
+
+```
+const cors = require("cors")
+app.use(cors({
+	origin:"*",
+	methods:['get','post']
+}))
+```
+
+
+
+#### 脚手架协助开启代理服务器1
 
 ```js
 //devServer
@@ -12350,7 +12433,7 @@ res.then((response)=>{
 
 
 
-### 脚手架协助开启代理服务器2
+#### 脚手架协助开启代理服务器2
 
 ```js
  devServer: {
@@ -12393,9 +12476,540 @@ res.then((response)=>{
 
 
 
+### HTTP 相关
 
+```
+请求方式：
+	post 增 delete 删 get 查 put 改
+请求参数：
+	query  ?key1=value&key2=value  编码方式为URLUnicode
+	param  
+	请求体参数
+		urlencoded格式【默认】
+			例如： name=tom&age=18
+			对应请求头：Content-Type:application/x-www-urlencoded
+		Json格式
+			例如："{"name":"tom","age":12}"
+			对应请求头： Content-Type:application/json
+```
+
+### API 分类
+
+```
+Restful 风格
+	1. 发送请求进行CURD那个操作由请求方式决定
+	2. 同一个请求路径可以进行多个操作
+	3. 请求方式会用到get\post\delete\put
+Restless 风格
+	1. 请求方式不决定CURD操作
+	2. 一个请求路径对应一个操作
+	3. 一般只有get/post操作
+```
+
+### *json-serve
+
+```
+用途：
+	一个快速搭建REST API 的工具包
+位置：
+	JSON-Server 是一个 Node 模块，运行 Express 服务器，你可以指定一个 json 文件作为 api 的数据源。
+使用
+	安装
+ 		npm install -g json-server
+ 	任何位置
+ 		cmd: json-server db.json
+	
+```
+
+### *postman
+
+```
+小记录一下postman配合json-server
+	get:
+		使用query进行查询返回的是一个数组array
+	Post:Body
+		x-www-form-urlencoded
+		raw	: 就是json
+		binary
+	put:
+		要修改的数据的id需要使用params进行携带
+		且要进行全属性body携带
+	delete:
+		使用params进行删除
+```
+
+### Http/ajax
+
+```
+1. ajax 请求是特殊的 http 请求
+2. 他们的区别只在客户端能体现出来
+3. XHR 和 fetch 发出的才是ajax 请求 ，其他都是非ajax请求
+4. 浏览器接收端响应：
+	一般请求：浏览器直接显示响应体数据
+	ajax请求：不会对界面进行任何更新
+```
+
+
+
+## 入门
+
+```
+axios优点：
+	基于promise的异步ajax请求
+	前端、node后端都可以用
+	支持请求响应拦截
+	支持请求取消
+	请求响应数据转换
+	批量发送
+```
+
+
+
+### 简单用例
+
+```js
+// post 用例
+axios({url:"http://localhost:5000/person",
+       method:'post',
+       data:{
+           name:"丁志强"+Math.floor((Math.random()*100)%100),
+           age:18
+       }
+}).then(res=>{
+    console.log(res);
+})
+```
+
+### 两种请求方式
+
+```js
+// 第一种 【通用】使用axios
+axios(config)
+axios(url[, config])   // get请求【默认请求方式】
+// 第二种 使用axios的方法
+axios.request(config)
+axios.get(url[, config])
+axios.delete(url[, config])
+axios.head(url[, config])
+axios.options(url[, config])
+axios.post(url[, data[, config]])
+axios.put(url[, data[, config]])
+axios.patch(url[, data[, config]])
+```
+
+### get请求参数用例
+
+```js
+axios({
+    url: address2 ,
+    method:"GET",
+    params:{ //?type=pop&page=1 
+        type:"pop",
+        page:1
+    }
+}).then((res) => {
+    console.log(res);
+});
+```
+
+### post 参数传递用例
+
+```
+axios.post(url,
+	data:{key:value} // JSON编码
+	data:`name=${encodeURI("丁志强同学","utf-8")}&age=18`  //urlencoded
+)
+```
+
+
+
+### config
+
+```
+url
+method : 默认值 get
+headers:{key:value}
+params:{key:value}
+data:{key:value}    默认采用JSON 编码
+timeout: 超时时间
+author:{username:"",password:""}
+responseType:"json" 配置相应类型的格式
+...
+```
+
+### axios并发请求
+
+```js
+axios.all([
+    axios({
+        url:address1,
+        method:"get",
+    }),
+    axios({
+        url:address2,
+        method:"get",
+        params:{
+            type:"pop",
+            page:1
+        }
+    })
+])
+.then(result=>{  //result 是一个数组
+	console.log(result)
+})
+```
+
+### 全局配置
+
+默认头信息
+
+```js
+import axios from "axios";
+axios.defaults.baseURL = "http://123.207.32.32:8000"
+axios.defaults.timeout = 500
+axios.defaults.headers.post['Content-Type'] ='application/json'
+axios.defaults.headers = {... }
+```
+
+### 创建实例
+
+```
+1. 每个axios.create都会创建新的axios
+2. 新axios只是没有取消请求和批量请求的方法
+```
+
+```js
+import axios from "axios";
+const instance = axios.create({
+  baseURL: 'http://123.207.32.32:8000',
+  timeout: 1000,
+  headers: {'Content-Type': 'application/json'}
+});
+export function request(config,success,failure){
+    instance(config).then((res)=>{
+        success(res)
+    }).catch((err)=>{
+        failure(err)
+    })
+}
+```
+
+## 高级
+
+### 封装
+
+```
+凡是第三方软件，不要直接使用它，我们就应该将其模块封装，进行降低其依赖。
+目录结构
+	|--request
+	   |--Maxios.js
+```
+
+封装1：主动传入处理函数和配置项
+
+```js
+import axios from 'axios'
+//实例创建
+const instance = new axios.create({
+    baseURL: 'http://123.207.32.32:8000/',
+    timeout:3000
+})
+export function request(config,success,failure){
+    instance(config).then((res)=>{
+        success(res)
+    }).catch((err)=>{
+        failure(err)
+    })
+}
+```
+
+```js
+import {request} from "../../request/Maxios"
+request({url:"/home/data",
+                methods:"get"
+        },(res)=>{
+            console.log(res)
+        },(err)=>{})
+```
+
+------
+
+封装2：需要主动设置config的子对象baseconfig
+
+```js
+export function request2(config){
+    
+    instance(config.baseConfig).then((res)=>{
+        config.success(res)
+    }).catch((err)=>{
+        config.failure(err)
+    })
+}
+```
+
+```js
+import {request2} from "../../request/Maxios"
+request2(
+        { baseConfig: { url: "/home/data", methods: "get" },
+          success:(res)=>{ console.log(res)},
+          failure:(err)=>{}
+        },
+        (res) => {
+          console.log(res);
+        },
+        (err) => {}
+      );
+```
+
+------
+
+封装3:封装为Promise
+
+```js
+export function request3(config){
+    return new Promise((reslove,reject)=>{  
+
+        instance(config).then((res)=>{
+            reslove(res)
+        }).catch((err)=>{
+            reject(err)
+        })
+    })
+}
+```
+
+```js
+import { request3 } from "../../request/Maxios";
+request3({ url: "/home/data", methods: "get" })
+      .then((res)=>{
+          console.log(res)
+      })
+      .catch((err)=>{});
+```
+
+------
+
+封装4: 直接返回实例
+
+```js
+export function request4(config){
+    return instance(config)
+}
+```
+
+```js
+import { request4 } from "../../request/Maxios";
+request4({ url: "/home/data", methods: "get" })
+      .then((res)=>{
+          console.log(res)
+      })
+      .catch((err)=>{});
+```
+
+
+
+
+
+### 配置参数的优先级
+
+```
+1. 在 `lib/defaults.js` 找到的库的默认值，
+2. 然后是实例的 `defaults` 属性，
+3. 最后是请求的 `config` 参数。
+后者将优先于前者
+```
+
+
+
+```js
+// 使用由库提供的配置的默认值来创建实例
+// 此时超时配置的默认值是 `0`
+var instance = axios.create();
+
+// 覆写库的超时默认值
+// 现在，在超时前，所有请求都会等待 2.5 秒
+instance.defaults.timeout = 2500;
+
+// 为已知需要花费很长时间的请求覆写超时设置
+instance.get('/longRequest', {
+  timeout: 5000
+});
+```
+
+### 拦截器
+
+在请求或响应被 then 或 catch 处理前拦截它们。
+
+```
+detail:
+	请求拦截器可以进行堆叠,且后指定的先执行。
+```
+
+```js
+// 添加请求拦截器
+【instance|axios】.interceptors.request.use(
+    //发送请求成功的拦截器
+    (config) => {
+        console.log(config)
+        //1. 如果config中的信息不符合服务器的要求，这里就可以进行修改
+        config.headers["TEMBO"] = "123"
+        //2. 每次发送网络请求时，都希望在页面中显示正在请求状态
+        
+        //3.某些网络请求必须携带一些特殊的信息(比如token)
+        return config 
+        //必须返回config 否则该参数将会被拦截掉，
+    },
+    //发送请求失败的拦截器
+    (err) => {
+         console.log(err) 
+    }
+)
+```
+
+```
+响应拦截器场景：
+	一：
+		当响应失败时，触发响应拦截器。如果在失败的响应拦截器中返回一个永远pendding状态的Promise后
+		这时axios可以通过await获取，且不用处理错误。
+		在配合第三方库，可以做到非常好的人性化提示，且使用axios时代码非常精简。
+```
+
+```js
+// 添加响应拦截器
+【instance|axios】.interceptors.response.use(
+    //响应成功的拦截器
+    (response)=>{
+        console.log(response)
+        return response
+         //必须返回response 否则该参数将会被拦截掉，
+    },
+    //响应失败的拦截器
+    (err)=>{
+        console.log(err)
+        return err|Promise.reject(err)|new Promise(()=>{})
+        //必须返回err 否则该参数将会被拦截掉，
+    }
+)
+
+let res = await axios.get("http://localhost:5000/persons")
+```
+
+### 移除拦截器
+
+```js
+const myInterceptor = axios.interceptors.request.use(function () {/*...*/});
+axios.interceptors.request.eject(myInterceptor);
+```
+
+
+
+### 中断取消
+
+```js
+// 
+	const CancelToken = axios.CancelToken;
+    const source = CancelToken.source();
+
+    axios.get('/user/12345', {
+    	cancelToken: source.token
+    }).catch(function (thrown) {
+    	if (axios.isCancel(thrown)) {
+    	console.log('Request canceled', thrown.message);
+    } else {
+   	 // 处理错误
+    	}
+    });
+
+    axios.post('/user/12345', {
+    	name: 'new name'
+    	}, {
+    	cancelToken: source.token
+    })
+
+    // 取消请求（message 参数是可选的）
+    source.cancel('Operation canceled by the user.');
+```
 
  
+
+```js
+// or
+	const CancelToken = axios.CancelToken;
+    let cancel;
+
+    axios.get('/user/12345', {
+      cancelToken: new CancelToken(function executor(c) {
+        // executor 函数接收一个 cancel 函数作为参数
+        cancel = c;
+      })
+    });
+
+    // 取消请求
+    cancel();
+```
+
+### 组合拳
+
+```
+中断与拦截器的组合拳
+```
+
+```
+中断请求与响应拦截器配合
+异常种类：
+	1. 本身请求产生异常
+	2. 用户自己取消的请求
+```
+
+```js
+ axios.interceptors.response.use(
+     //响应成功的拦截器
+     (r) => {
+         return r;
+     },
+     //响应失败的拦截器
+     (err) => {
+         if (axios.isCancel(err)) {
+             console.log("用户主动取消时进行判断", err);
+         }
+         return new Promise(() => {});
+     }
+ );
+```
+
+
+
+```
+中断请求与请求拦截器配合
+场景：
+	当用户点击多次提交时，我们只提交最后一次的点击请求
+```
+
+```js
+axios.interceptors.request.use((config)=>{
+    if(cancel) cancel("重复提交")
+    config.cancelToken = new CancelToken((c)=>{cancel=c})
+    return config
+});
+axios.interceptors.response.use((s)=>s.data,(err)=>{
+    if(axios.isCancel(err)){
+        console.log("用户主动取消了请求:",err.message);
+        return Promise.reject("fail1")
+    }else{
+        console.log("请求失败");
+        return Promise.reject("fail2")
+    }
+})
+btn1.addEventListener("click",  () => {
+    let res = axios.get("http://localhost:5000/test1?delay=3000").then(s=>{
+        console.log(s);
+    },(e)=>{console.log(e);});
+});
+
+btn2.addEventListener("click", () => {
+    cancel("btn2 取消");
+});
+```
 
 
 
@@ -12570,18 +13184,19 @@ GET方式创建链接，可以直接将参数放置在url中，通常底层TCP�
 
 ```
 表单enctype属性
-	1. 【默认】application/x-www-form-urlencoded 
+	1.  【默认】application/x-www-form-urlencoded 
 		
 	2.  text/plain
 			不对特殊字符编码，空格转换为+号，发送纯文本，email
 	3.	multipart/form-data
-			不编码，二进制，发送文件
+			不编码，二进制，发送文件。
+		
 	
 四种POST参数请求方式	
 	1. 	application/x-www-form-urlencoded 
 			编码方式 key1=val1&key2=val2   【浏览器原生支持】
 	2.	multipart/form-data
-			上传文件，					【浏览器原生支持】
+			上传文件，					  【浏览器原生支持】
 	3.	application/json
 	
 	4.	text/xml
@@ -12625,7 +13240,7 @@ xhr.send(JSON.stringify(data));
 const express = require('express')
 var bodyParser = require('body-parser')  
 const app = express()
-// parse application/x-www-form-urlencoded   // 协助解析ata数据
+// parse application/x-www-form-urlencoded   // 协助解析data数据
 app.use(bodyParser.urlencoded({ extended: false }))  
 // parse application/json					 //  协助解析json数据
 app.use(bodyParser.json())  
@@ -12647,6 +13262,16 @@ app.listen(5000,(err)=>{
 	if(!err) console.log('服务器1启动成功了,请求学生信息地址为：http://localhost:5000/students');
 })
 
+```
+
+
+
+
+
+## abort 方法
+
+```
+进行取消请求
 ```
 
 
@@ -12898,6 +13523,8 @@ var file = new File([bolb], "tupian.img", {
 
 
 
+
+
 # 10 GIT 
 
 ```
@@ -13009,6 +13636,9 @@ Gitee|Gitlab
 5. 分支删除
 	git branch -d 待删除分支  
 	不能再当前分支上删除当前分支
+	
+6. 本地分支重命名
+	git branch -m oldName newName
 ```
 
 ### 分支版本切换
@@ -13161,6 +13791,20 @@ GitHub 自行创建
 ```
 
 
+
+# VSCode插件
+
+## NeteaseMusic
+
+```
+ctrl+shift+p
+开启：
+	neteasamusic:start
+查询：
+	neteasemusic:search
+关闭：
+	neteasemusic:stop
+```
 
 
 
