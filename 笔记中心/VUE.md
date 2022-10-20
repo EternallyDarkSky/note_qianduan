@@ -4,24 +4,6 @@
 
 # 二.模块化开发
 
-常见的模块化规范：CommonJS、AMD、CMD、ES6的Modules
-
-模块化的核心两个操作：导入+导出
-
-CommonJS导出：
-
-​		*module.export{*
-
-​					*A:true,B:function(){...}, ...* 
-
-​					*}*
-
-CommonJS导入：
-
-​		*let  { test }  = require('modulePath|modeleName')*
-
-
-
 ## 脚手架
 
 环境：
